@@ -19,10 +19,41 @@ This Turborepo includes the following packages/apps:
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
 - `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/schema-to-zod`: a CLI tool for converting schemas to Zod types
 - `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+
+### Using schema-to-zod
+
+The `@repo/schema-to-zod` package provides a CLI tool for converting schemas to Zod types.
+
+#### Building the package
+
+To build the schema-to-zod package:
+
+```sh
+# Build just the schema-to-zod package
+pnpm build --filter=@repo/schema-to-zod
+
+# Or build all packages
+pnpm build
+```
+
+#### Running the command
+
+After building, you can use the schema-to-zod command:
+
+```sh
+# Using the npm script (recommended)
+pnpm schema-to-zod <schema-file>
+
+# Example
+pnpm schema-to-zod schema.json
+```
+
+The command expects a schema file as an argument and will process it to generate Zod types.
 
 ### Utilities
 
