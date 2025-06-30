@@ -47,10 +47,9 @@ After building, you can use the schema-to-zod command:
 
 ```sh
 # Using the npm script (recommended)
-pnpm schema-to-zod <schema-file>
-
-# Example
-pnpm schema-to-zod schema.json
+pnpm schema-to-zod --api-key YOUR_API_KEY
+pnpm schema-to-zod --api-key YOUR_API_KEY --output schemas.ts
+pnpm schema-to-zod --api-key YOUR_API_KEY --region eu --version draft
 ```
 
 The command expects a schema file as an argument and will process it to generate Zod types.
