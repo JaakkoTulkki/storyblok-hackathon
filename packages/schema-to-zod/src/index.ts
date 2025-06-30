@@ -40,6 +40,15 @@ function convertFieldToZod(fieldName: string, fieldSchema: any): string | null {
           .filter((v: any) => v !== undefined && v !== null && v !== '');
         
         if (values.length > 0) {
+          // Check if any values contain special characters that would break enum syntax
+          const hasComplexValues = values.some((v: any) => 
+            typeof v === 'string' && (v.includes('[') || v.includes('"') || v.includes('#'))
+          );
+          
+          if (hasComplexValues) {
+            return 'z.string()';
+          }
+          
           // Handle different value types
           const stringValues = values.filter((v: any) => typeof v === 'string');
           const numberValues = values.filter((v: any) => typeof v === 'number');
@@ -140,15 +149,12 @@ export async function fetchStoryblokContentTypes(config: StoryblokConfig): Promi
     }
     
     const componentIds = componentsResponse.data.components.map((component: any) => component.id);
-    console.log(`Found ${componentIds.length} components. Fetching schemas for first 2 components...`);
+    console.log(`Found ${componentIds.length} components. Fetching schemas for all components...`);
     
     // Extract content types from the response
     const contentTypes: ContentType[] = [];
     
-    // Limit to first 2 components for initial testing
-    const limitedComponentIds = componentIds.slice(0, 2);
-    
-    for (const componentId of limitedComponentIds) {
+    for (const componentId of componentIds) {
       console.log(`Fetching schema for component ID: ${componentId}`);
       const componentResponse = await Storyblok.get(`spaces/${SPACE_ID}/components/${componentId}`);
       
@@ -301,13 +307,17 @@ async function main() {
     // Add imports at the top
     const fullOutput = `import { z } from 'zod';\n\n${zodSchemas}`;
     
-    if (options.output) {
-      // Write to file
-      const fs = await import('fs/promises');
-      await fs.writeFile(options.output, fullOutput, 'utf-8');
-      console.log(`Zod schemas written to ${options.output}`);
-    } else {
-      // Output to console
+    // Default output path to validate package's zod directory
+    const defaultOutput = '../validate/src/zod/index.ts';
+    const outputPath = options.output || defaultOutput;
+    
+    // Write to file
+    const fs = await import('fs/promises');
+    await fs.writeFile(outputPath, fullOutput, 'utf-8');
+    console.log(`Zod schemas written to ${outputPath}`);
+    
+    // Also output to console if no specific output was requested
+    if (!options.output) {
       console.log('\n--- Generated Zod Schemas ---\n');
       console.log(fullOutput);
     }
