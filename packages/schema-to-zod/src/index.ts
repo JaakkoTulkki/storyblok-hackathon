@@ -16,6 +16,104 @@ interface ContentType {
   schema: Record<string, any>;
 }
 
+// Helper function to convert Storyblok field schema to Zod type
+function convertFieldToZod(fieldName: string, fieldSchema: any): string | null {
+  const fieldType = fieldSchema.type;
+  
+  switch (fieldType) {
+    case 'text':
+    case 'textarea':
+    case 'markdown':
+    case 'richtext':
+      return 'z.string()';
+      
+    case 'number':
+      return 'z.number()';
+      
+    case 'boolean':
+      return 'z.boolean()';
+      
+    case 'option':
+      if (fieldSchema.options && Array.isArray(fieldSchema.options)) {
+        const values = fieldSchema.options
+          .map((opt: any) => opt.value)
+          .filter((v: any) => v !== undefined && v !== null && v !== '');
+        
+        if (values.length > 0) {
+          // Handle different value types
+          const stringValues = values.filter((v: any) => typeof v === 'string');
+          const numberValues = values.filter((v: any) => typeof v === 'number');
+          
+          if (stringValues.length > 0 && numberValues.length === 0) {
+            return `z.enum([${stringValues.map((v: any) => `"${v}"`).join(', ')}])`;
+          } else if (numberValues.length > 0 && stringValues.length === 0) {
+            return `z.enum([${numberValues.join(', ')}])`;
+          } else {
+            // Mixed types or complex values, fall back to string
+            return 'z.string()';
+          }
+        }
+      }
+      return 'z.string()';
+      
+    case 'asset':
+      return `z.object({
+        id: z.number().optional(),
+        alt: z.string().optional(),
+        name: z.string().optional(),
+        focus: z.string().optional(),
+        title: z.string().optional(),
+        filename: z.string().optional(),
+        copyright: z.string().optional(),
+        fieldtype: z.string().optional()
+      }).optional()`;
+      
+    case 'bloks':
+      if (fieldSchema.component_whitelist && fieldSchema.component_whitelist.length > 0) {
+        const componentTypes = fieldSchema.component_whitelist.map((comp: string) => `"${comp}"`).join(' | ');
+        return `z.array(z.object({
+          component: z.literal(${componentTypes}),
+          _uid: z.string(),
+          _editable: z.string().optional()
+        }).and(z.record(z.any()))).optional()`;
+      }
+      return `z.array(z.object({
+        component: z.string(),
+        _uid: z.string(),
+        _editable: z.string().optional()
+      }).and(z.record(z.any()))).optional()`;
+      
+    case 'multilink':
+      return `z.object({
+        id: z.string().optional(),
+        url: z.string().optional(),
+        linktype: z.string().optional(),
+        fieldtype: z.string().optional(),
+        cached_url: z.string().optional()
+      }).optional()`;
+      
+    case 'datetime':
+      return 'z.string().datetime().optional()';
+      
+    case 'date':
+      return 'z.string().optional()';
+      
+    case 'table':
+      return 'z.array(z.array(z.string())).optional()';
+      
+    case 'custom':
+      return 'z.any()';
+      
+    case 'tab':
+      // Tabs are UI elements, not data fields
+      return null;
+      
+    default:
+      console.warn(`Unknown field type: ${fieldType} for field: ${fieldName}`);
+      return 'z.any()';
+  }
+}
+
 export async function fetchStoryblokContentTypes(config: StoryblokConfig): Promise<ContentType[]> {
   const { apiKey, spaceId, region = 'us', version = 'published', language = 'en' } = config;
   const SPACE_ID = 285464212182782;
@@ -29,35 +127,43 @@ export async function fetchStoryblokContentTypes(config: StoryblokConfig): Promi
   
   const Storyblok = new StoryblokClient({
     oauthToken: apiKey,
-    region: region,
+    // region: region,
   });
 
   try {
-    console.log(`Fetching content types from Storyblok space...`);
+    console.log(`Fetching component list from Storyblok space...`);
     
-    // Use the Management API to fetch component schemas
-    // This endpoint gets the actual content type definitions
-    const response = await Storyblok.get(`spaces/${SPACE_ID}/components`, {
-      version: version,
-    });
-
-    if (!response.data || !response.data.components) {
-      throw new Error('No content types found or invalid response from Storyblok');
+    // First, get the list of all components
+    const componentsResponse = await Storyblok.get(`spaces/${SPACE_ID}/components`);
+    if (!componentsResponse.data || !componentsResponse.data.components) {
+      throw new Error('No components found or invalid response from Storyblok');
     }
-
+    
+    const componentIds = componentsResponse.data.components.map((component: any) => component.id);
+    console.log(`Found ${componentIds.length} components. Fetching schemas for first 2 components...`);
+    
     // Extract content types from the response
     const contentTypes: ContentType[] = [];
     
-    for (const component of response.data.components) {
-      if (component.schema) {
+    // Limit to first 2 components for initial testing
+    const limitedComponentIds = componentIds.slice(0, 2);
+    
+    for (const componentId of limitedComponentIds) {
+      console.log(`Fetching schema for component ID: ${componentId}`);
+      const componentResponse = await Storyblok.get(`spaces/${SPACE_ID}/components/${componentId}`);
+      
+      if (componentResponse.data && componentResponse.data.component && componentResponse.data.component.schema) {
         contentTypes.push({
-          name: component.name,
-          schema: component.schema,
+          name: componentResponse.data.component.name,
+          schema: componentResponse.data.component.schema,
         });
+        console.log(`✓ Added schema for component: ${componentResponse.data.component.name}`);
+      } else {
+        console.warn(`⚠ No schema found for component ID: ${componentId}`);
       }
     }
 
-    console.log(`Found ${contentTypes.length} content types`);
+    console.log(`Successfully fetched ${contentTypes.length} content types`);
     return contentTypes;
     
   } catch (error) {
@@ -72,27 +178,28 @@ export function schemaToZod(contentTypes: ContentType[]): string {
   let zodSchemas = '';
   
   for (const contentType of contentTypes) {
-    const schemaName = `${contentType.name.charAt(0).toUpperCase() + contentType.name.slice(1)}Schema`;
+    // Convert kebab-case to PascalCase for schema name
+    const schemaName = contentType.name
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('') + 'Schema';
+    
     zodSchemas += `\n// ${contentType.name} content type\n`;
     zodSchemas += `export const ${schemaName} = z.object({\n`;
     
     // Convert Storyblok schema to Zod
     for (const [key, value] of Object.entries(contentType.schema)) {
-      if (key === 'component' || key === '_uid' || key === '_editable') continue;
+      // Skip internal fields and UI elements
+      if (key === 'component' || key === '_uid' || key === '_editable' || key.startsWith('tab-')) {
+        continue;
+      }
       
       const fieldName = key;
-      let zodType = 'z.any()'; // Default fallback
+      const zodType = convertFieldToZod(fieldName, value);
       
-      if (typeof value === 'string') {
-        zodType = 'z.string()';
-      } else if (typeof value === 'number') {
-        zodType = 'z.number()';
-      } else if (typeof value === 'boolean') {
-        zodType = 'z.boolean()';
-      } else if (Array.isArray(value)) {
-        zodType = 'z.array(z.any())';
-      } else if (value && typeof value === 'object') {
-        zodType = 'z.record(z.any())';
+      // Skip fields that don't generate Zod types (like tabs)
+      if (zodType === null) {
+        continue;
       }
       
       zodSchemas += `  ${fieldName}: ${zodType},\n`;
@@ -232,6 +339,6 @@ Examples:
 }
 
 // Only run if this file is executed directly
-if (process.argv[1] && process.argv[1].endsWith('index.js')) {
+if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.ts'))) {
   main();
 }
