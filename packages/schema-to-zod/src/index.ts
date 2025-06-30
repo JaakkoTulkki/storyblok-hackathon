@@ -18,6 +18,8 @@ interface ContentType {
 
 export async function fetchStoryblokContentTypes(config: StoryblokConfig): Promise<ContentType[]> {
   const { apiKey, spaceId, region = 'us', version = 'published', language = 'en' } = config;
+  const SPACE_ID = 285464212182782;
+  
   
   // Initialize Storyblok client
   if (!StoryblokClient) {
@@ -26,33 +28,31 @@ export async function fetchStoryblokContentTypes(config: StoryblokConfig): Promi
   }
   
   const Storyblok = new StoryblokClient({
-    accessToken: apiKey,
+    oauthToken: apiKey,
     region: region,
   });
 
   try {
     console.log(`Fetching content types from Storyblok space...`);
     
-    // Fetch content types using the Storyblok Management API
-    const response = await Storyblok.get('cdn/stories', {
+    // Use the Management API to fetch component schemas
+    // This endpoint gets the actual content type definitions
+    const response = await Storyblok.get(`spaces/${SPACE_ID}/components`, {
       version: version,
-      language: language,
-      by_folders: '0', // Get root level content types
-      per_page: 100,
     });
 
-    if (!response.data || !response.data.stories) {
+    if (!response.data || !response.data.components) {
       throw new Error('No content types found or invalid response from Storyblok');
     }
 
     // Extract content types from the response
     const contentTypes: ContentType[] = [];
     
-    for (const story of response.data.stories) {
-      if (story.content && story.content.component) {
+    for (const component of response.data.components) {
+      if (component.schema) {
         contentTypes.push({
-          name: story.content.component,
-          schema: story.content,
+          name: component.name,
+          schema: component.schema,
         });
       }
     }
