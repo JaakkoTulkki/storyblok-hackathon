@@ -19,6 +19,16 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  font-size: 16px;
+  line-height: 1.5;
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 * {
@@ -44,6 +54,7 @@ a {
   .imgLight {
     display: none;
   }
+
   .imgDark {
     display: unset;
   }
@@ -96,9 +107,14 @@ a {
     background-color: #1f1f1f;
     border-color: #ef4444;
   }
-  
+
   .validation-error-badge {
     background-color: #ef4444;
     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
   }
+}
+
+.teaser {
+  min-width: 300px;
+
 }

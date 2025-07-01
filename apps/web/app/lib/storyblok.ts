@@ -8,8 +8,7 @@ import Text from '../components/TextSection';
 export const getStoryblokApi = storyblokInit({
     accessToken: process.env.STORYBLOK_DELIVERY_API_ACCESS_TOKEN,
     components: {
-        "page": Page,
-        "text-section": Text,
+        page: Page,
         feature: Feature,
         grid: Grid,
         teaser: Teaser

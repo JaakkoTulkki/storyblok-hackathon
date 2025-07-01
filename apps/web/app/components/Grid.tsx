@@ -1,9 +1,9 @@
-import { StoryblokServerComponent } from '@storyblok/react/rsc'
+import StoryblokServerComponentValidate from './StoryblokServerComponentValidate';
 export default function Grid({ blok }) {
     return (
         <div className="grid">
             {blok.columns.map((nestedBlok) => (
-                <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+                <StoryblokServerComponentValidate blok={nestedBlok} key={nestedBlok._uid} />
             ))}
         </div>
     );

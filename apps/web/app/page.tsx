@@ -1,18 +1,5 @@
-import styles from "./page.module.css";
-import { getStoryblokApi } from './lib/storyblok';
-import { StoryblokStory } from '@storyblok/react/rsc';
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  const { data } = await fetchData();
-  console.log(data);
-
-  return (
-    <div className="page">
-      <StoryblokStory story={data.story} />
-    </div>
-  );
-}
-export async function fetchData() {
-  const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/home`, { version: 'draft' });
+export default function Page() {
+  redirect("/home");
 }

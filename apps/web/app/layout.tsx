@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import StoryblokProvider from "./components/StoryblokProvider";
 import "./globals.css";
+import styles from "./layout.module.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,7 +27,17 @@ export default function RootLayout({
     <StoryblokProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          {children}
+          <div className={styles.page}>
+
+            <nav className={styles.nav}>
+              <a href="/">Home</a>
+              <a href="/about">About</a>
+            </nav>
+            {children}
+            <footer className={styles.footer}>
+              <p>Powered by Storyblok</p>
+            </footer>
+          </div>
         </body>
       </html>
     </StoryblokProvider>
