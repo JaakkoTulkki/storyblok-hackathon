@@ -1,5 +1,6 @@
 import { ZodType } from "zod/v4";
 import * as Schemas from "./zod";
+import { fi } from "zod/v4/locales";
 
 function toPascalCase(str: string): string {
     return str
@@ -27,6 +28,11 @@ export function validate(content: any) {
     };
   }
 
+  // Filter out properties starting with underscore, but keep _id
+  const filteredContent = Object.fromEntries(
+    Object.entries(content).filter(([key]) => key === '_uid' || !key.startsWith('_'))
+  );
+
   // Get the schema name based on the component
   const schemaName = getSchemaName(content.component);
   
@@ -40,7 +46,7 @@ export function validate(content: any) {
 
   // Get the schema and validate
   const schema = (Schemas as any)[schemaName].strict();
-  const result = schema.safeParse(content);
+  const result = schema.safeParse(filteredContent);
   
   if (!result.success) {
     const errorMessage = result.error.issues

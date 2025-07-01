@@ -2,16 +2,13 @@ import styles from "./page.module.css";
 import { getStoryblokApi } from '../lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { validate } from "@repo/validate";
+import { StoryblokStoryValidate } from "../components/StoryblokStoryValidate";
 
 export default async function About() {
     const { data } = await fetchData();
-    const result = validate(data.story.content);
-    console.log(result);
-
     return (
         <div className="page">
-            {!result.success && <div className="error">{result.error}</div>}
-            <StoryblokStory story={data.story} />
+            <StoryblokStoryValidate story={data.story} />
         </div>
     );
 }
