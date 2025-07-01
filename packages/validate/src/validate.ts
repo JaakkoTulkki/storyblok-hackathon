@@ -19,6 +19,43 @@ function toPascalCase(str: string): string {
     return `${toPascalCase(componentName)}Schema`;
   }
 
+// Helper function to recursively validate objects inside arrays
+function validateRecursively(obj: any): { success: boolean; error?: string; data?: any } {
+  // If it's an array, validate each item that has a component property
+  if (Array.isArray(obj)) {
+    const validationResults = [];
+    
+    for (let i = 0; i < obj.length; i++) {
+      const item = obj[i];
+      
+      // If the item is an object with a component property, validate it
+      if (item && typeof item === 'object' && item.component) {
+        const itemValidation = validate(item);
+        if (!itemValidation.success) {
+          return {
+            success: false,
+            error: `Array item at index ${i}: ${itemValidation.error}`
+          };
+        }
+        validationResults.push(itemValidation.data);
+      } else {
+        // If it doesn't have a component property, keep it as is
+        validationResults.push(item);
+      }
+    }
+    
+    return { success: true, data: validationResults };
+  }
+  
+  // If it's an object (but not an array), check if it has a component property
+  if (obj && typeof obj === 'object' && !Array.isArray(obj) && obj.component) {
+    return validate(obj);
+  }
+  
+  // If it's not an object with component property, return as is
+  return { success: true, data: obj };
+}
+
 export function validate(content: any) {
   // Check if content has a component property
   if (!content || typeof content !== 'object' || !content.component) {
@@ -28,7 +65,7 @@ export function validate(content: any) {
     };
   }
 
-  // Filter out properties starting with underscore, but keep _id
+  // Filter out properties starting with underscore, but keep _uid
   const filteredContent = Object.fromEntries(
     Object.entries(content).filter(([key]) => key === '_uid' || !key.startsWith('_'))
   );
@@ -58,10 +95,26 @@ export function validate(content: any) {
       error: errorMessage
     };
   }
+
+  // Recursively validate arrays and objects with component properties
+  const validatedData = { ...result.data };
+  
+  for (const [key, value] of Object.entries(validatedData)) {
+    if (value && typeof value === 'object') {
+      const recursiveValidation = validateRecursively(value);
+      if (!recursiveValidation.success) {
+        return {
+          success: false,
+          error: `${key}: ${recursiveValidation.error}`
+        };
+      }
+      validatedData[key] = recursiveValidation.data;
+    }
+  }
   
   return { 
     success: true, 
-    data: result.data 
+    data: validatedData 
   };
 }
 
