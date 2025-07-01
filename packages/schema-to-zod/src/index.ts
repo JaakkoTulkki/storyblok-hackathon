@@ -79,9 +79,9 @@ function convertFieldToZod(fieldName: string, fieldSchema: any): string | null {
       
     case 'bloks':
       if (fieldSchema.component_whitelist && fieldSchema.component_whitelist.length > 0) {
-        const componentTypes = fieldSchema.component_whitelist.map((comp: string) => `"${comp}"`).join(' | ');
+        const componentTypes = fieldSchema.component_whitelist.map((comp: string) => `"${comp}"`).join(', ');
         return `z.array(z.object({
-          component: z.literal(${componentTypes}),
+          component: z.enum([${componentTypes}]),
           _uid: z.string(),
           _editable: z.string().optional()
         }).and(z.record(z.any()))).optional()`;

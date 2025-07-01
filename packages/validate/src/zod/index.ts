@@ -260,7 +260,7 @@ export const GridSectionSchema = z.object({
   _uid: z.string(),
   component: z.literal("grid-section"),
   cards: z.array(z.object({
-          component: z.literal("grid-card" | "price-card" | "image-card"),
+          component: z.enum(["grid-card", "price-card", "image-card"]),
           _uid: z.string(),
           _editable: z.string().optional()
         }).and(z.record(z.any()))).optional(),
