@@ -56,7 +56,7 @@ function validateRecursively(obj: any): { success: boolean; error?: string; data
   return { success: true, data: obj };
 }
 
-export function validate(content: any) {
+export function validate(content: any, recursive: boolean = false) {
   // Check if content has a component property
   if (!content || typeof content !== 'object' || !content.component) {
     return {
@@ -96,25 +96,33 @@ export function validate(content: any) {
     };
   }
 
-  // Recursively validate arrays and objects with component properties
-  const validatedData = { ...result.data };
-  
-  for (const [key, value] of Object.entries(validatedData)) {
-    if (value && typeof value === 'object') {
-      const recursiveValidation = validateRecursively(value);
-      if (!recursiveValidation.success) {
-        return {
-          success: false,
-          error: `${key}: ${recursiveValidation.error}`
-        };
+  // Only perform recursive validation if explicitly requested
+  if (recursive) {
+    // Recursively validate arrays and objects with component properties
+    const validatedData = { ...result.data };
+    
+    for (const [key, value] of Object.entries(validatedData)) {
+      if (value && typeof value === 'object') {
+        const recursiveValidation = validateRecursively(value);
+        if (!recursiveValidation.success) {
+          return {
+            success: false,
+            error: `${key}: ${recursiveValidation.error}`
+          };
+        }
+        validatedData[key] = recursiveValidation.data;
       }
-      validatedData[key] = recursiveValidation.data;
     }
+    
+    return { 
+      success: true, 
+      data: validatedData 
+    };
   }
   
   return { 
     success: true, 
-    data: validatedData 
+    data: result.data 
   };
 }
 

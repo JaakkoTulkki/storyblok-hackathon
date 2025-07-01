@@ -48,3 +48,57 @@ a {
     display: unset;
   }
 }
+
+/* Validation Error Styles */
+.validation-error-wrapper {
+  position: relative;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  background-color: #fef2f2;
+}
+
+.validation-error-badge {
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  background-color: #dc2626;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.error-icon {
+  font-size: 12px;
+}
+
+.error-text {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.validation-error-content {
+  /* Content area - children will render here */
+}
+
+/* Dark mode support for validation errors */
+@media (prefers-color-scheme: dark) {
+  .validation-error-wrapper {
+    background-color: #1f1f1f;
+    border-color: #ef4444;
+  }
+  
+  .validation-error-badge {
+    background-color: #ef4444;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  }
+}

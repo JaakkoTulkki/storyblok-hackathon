@@ -1,16 +1,15 @@
 import {
     StoryblokServerComponent,
 } from '@storyblok/react/rsc';
+import StoryblokServerComponentValidate from './StoryblokServerComponentValidate';
 
 
-export default function Page({ blok }) {
-
-    console.log(blok);
-
+export default function Page({ blok }) {  
+   
     return (
         <main>
             {blok.body.map((nestedBlok) => (
-                <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+                <StoryblokServerComponentValidate blok={nestedBlok} key={nestedBlok._uid} />
             ))}
         </main>
     );

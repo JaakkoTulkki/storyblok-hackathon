@@ -1,12 +1,15 @@
 import { validate } from '@repo/validate';
 import { StoryblokStory, } from '@storyblok/react/rsc';
+import { ValidationError } from './ValidationError';
 
 export async function StoryblokStoryValidate({ story }: { story: any }) {
     const result = validate(story.content);
-    return (
-        <div>
-            {!result.success && <div className="error">{result.error}</div>}
+    
+    if (!result.success) {
+        return <ValidationError error={result.error}>
             <StoryblokStory story={story} />
-        </div>
-    );
+        </ValidationError>;
+    }
+    
+    return <StoryblokStory story={story} />;
 }
