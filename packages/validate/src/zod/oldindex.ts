@@ -1,10 +1,14 @@
 import { z } from 'zod';
 
+// Helper for required Storyblok fields
+const requiredStoryblokFields = {
+  _uid: z.string(),
+  component: z.string(),
+};
 
 // article-overview-page content type
 export const ArticleOverviewPageSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("article-overview-page"),
+  ...requiredStoryblokFields,
   meta_title: z.string(),
   meta_description: z.string(),
   headline: z.string(),
@@ -12,8 +16,7 @@ export const ArticleOverviewPageSchema = z.object({
 
 // article-page content type
 export const ArticlePageSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("article-page"),
+  ...requiredStoryblokFields,
   headline: z.string(),
   image: z.object({
         id: z.number().optional(),
@@ -34,8 +37,7 @@ export const ArticlePageSchema = z.object({
 
 // banner content type
 export const BannerSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("banner"),
+  ...requiredStoryblokFields,
   background_image: z.object({
         id: z.number().optional(),
         alt: z.string().optional(),
@@ -76,15 +78,13 @@ export const BannerSchema = z.object({
 
 // banner-reference content type
 export const BannerReferenceSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("banner-reference"),
+  ...requiredStoryblokFields,
   banners: z.any(),
 });
 
 // button content type
 export const ButtonSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("button"),
+  ...requiredStoryblokFields,
   style: z.enum(["default", "ghost"]),
   background_color: z.string(),
   text_color: z.enum(["white", "primary-dark"]),
@@ -120,8 +120,7 @@ export const CategorySchema = z.object({
 
 // contact-form-section content type
 export const ContactFormSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("contact-form-section"),
+  ...requiredStoryblokFields,
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -150,8 +149,6 @@ export const ContactFormSectionSchema = z.object({
 
 // default-page content type
 export const DefaultPageSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("default-page"),
   meta_title: z.string(),
   meta_description: z.string(),
   body: z.array(z.object({
@@ -163,16 +160,12 @@ export const DefaultPageSchema = z.object({
 
 // faq-entry content type
 export const FaqEntrySchema = z.object({
-  _uid: z.string(),
-  component: z.literal("faq-entry"),
   question: z.string(),
   answer: z.string(),
 });
 
 // faq-section content type
 export const FaqSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("faq-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -188,8 +181,6 @@ export const FaqSectionSchema = z.object({
 
 // featured-articles-section content type
 export const FeaturedArticlesSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("featured-articles-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -203,8 +194,6 @@ export const FeaturedArticlesSectionSchema = z.object({
 
 // form-section content type
 export const FormSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("form-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -220,8 +209,6 @@ export const FormSectionSchema = z.object({
 
 // grid-card content type
 export const GridCardSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("grid-card"),
   bold_text: z.string(),
   label: z.string(),
   text: z.string(),
@@ -257,10 +244,13 @@ export const GridCardSchema = z.object({
 
 // grid-section content type
 export const GridSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("grid-section"),
+  ...requiredStoryblokFields,
   cards: z.array(z.object({
-          component: z.literal("grid-card" | "price-card" | "image-card"),
+          component: z.union([
+            z.literal("grid-card"),
+            z.literal("price-card"),
+            z.literal("image-card")
+          ]),
           _uid: z.string(),
           _editable: z.string().optional()
         }).and(z.record(z.any()))).optional(),
@@ -281,18 +271,18 @@ export const GridSectionSchema = z.object({
 
 // headline-segment content type
 export const HeadlineSegmentSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("headline-segment"),
   text: z.string(),
   highlight: z.enum(["none", "color_1", "color_2", "color_3"]),
 });
 
 // hero-section content type
 export const HeroSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("hero-section"),
+  layout: z.enum(["stacked", "split"]),
+  background_color: z.string(),
+  secondary_background_color: z.string(),
+  text_alignment: z.enum(["left", "center"]),
+  image_decoration: z.boolean(),
   text: z.string(),
-  header: z.string(),
   buttons: z.array(z.object({
           component: z.literal("button"),
           _uid: z.string(),
@@ -309,17 +299,10 @@ export const HeroSectionSchema = z.object({
         fieldtype: z.string().optional()
       }).optional(),
   preserve_image_aspect_ratio: z.boolean(),
-  layout: z.enum(["stacked", "split"]),
-  background_color: z.string(),
-  secondary_background_color: z.string(),
-  text_alignment: z.enum(["left", "center"]),
-  image_decoration: z.boolean(),
 });
 
 // image-card content type
 export const ImageCardSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("image-card"),
   image: z.object({
         id: z.number().optional(),
         alt: z.string().optional(),
@@ -337,8 +320,6 @@ export const ImageCardSchema = z.object({
 
 // image-text-section content type
 export const ImageTextSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("image-text-section"),
   background_color: z.string(),
   reverse_mobile_layout: z.boolean(),
   reverse_desktop_layout: z.boolean(),
@@ -369,8 +350,6 @@ export const ImageTextSectionSchema = z.object({
 
 // latest-articles-section content type
 export const LatestArticlesSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("latest-articles-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -381,16 +360,12 @@ export const LatestArticlesSectionSchema = z.object({
 
 // logo-section content type
 export const LogoSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("logo-section"),
   lead: z.string(),
   logos: z.any(),
 });
 
 // nav-item content type
 export const NavItemSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("nav-item"),
   link: z.object({
         id: z.string().optional(),
         url: z.string().optional(),
@@ -403,8 +378,6 @@ export const NavItemSchema = z.object({
 
 // newsletter-form-section content type
 export const NewsletterFormSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("newsletter-form-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -419,8 +392,6 @@ export const NewsletterFormSectionSchema = z.object({
 
 // personalized-section content type
 export const PersonalizedSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("personalized-section"),
   preview: z.enum(["new_visitor", "returning_visitor"]),
   returning_visitor: z.any(),
   returning_visitor_blocks: z.array(z.object({
@@ -438,8 +409,6 @@ export const PersonalizedSectionSchema = z.object({
 
 // price-card content type
 export const PriceCardSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("price-card"),
   most_popular: z.boolean(),
   headline: z.string(),
   text_1: z.string(),
@@ -454,15 +423,11 @@ export const PriceCardSchema = z.object({
 
 // richtext-youtube content type
 export const RichtextYoutubeSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("richtext-youtube"),
   video_id: z.string(),
 });
 
 // site-config content type
 export const SiteConfigSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("site-config"),
   primary_highlight_color: z.any(),
   highlight_1_color: z.any(),
   highlight_2_color: z.any(),
@@ -565,8 +530,6 @@ export const SiteConfigSchema = z.object({
 
 // tabbed-content-entry content type
 export const TabbedContentEntrySchema = z.object({
-  _uid: z.string(),
-  component: z.literal("tabbed-content-entry"),
   image: z.object({
         id: z.number().optional(),
         alt: z.string().optional(),
@@ -588,8 +551,6 @@ export const TabbedContentEntrySchema = z.object({
 
 // tabbed-content-section content type
 export const TabbedContentSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("tabbed-content-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -605,8 +566,6 @@ export const TabbedContentSectionSchema = z.object({
 
 // testimonial content type
 export const TestimonialSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("testimonial"),
   quote: z.string(),
   photo: z.object({
         id: z.number().optional(),
@@ -624,8 +583,6 @@ export const TestimonialSchema = z.object({
 
 // testimonials-section content type
 export const TestimonialsSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("testimonials-section"),
   headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),
@@ -637,8 +594,6 @@ export const TestimonialsSectionSchema = z.object({
 
 // text-section content type
 export const TextSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("text-section"),
   eyebrow: z.string(),
   text_alignment: z.enum(["left", "center"]),
   headline: z.array(z.object({
@@ -657,8 +612,6 @@ export const TextSectionSchema = z.object({
 
 // two-columns-section content type
 export const TwoColumnsSectionSchema = z.object({
-  _uid: z.string(),
-  component: z.literal("two-columns-section"),
   column_1_headline: z.array(z.object({
           component: z.literal("headline-segment"),
           _uid: z.string(),

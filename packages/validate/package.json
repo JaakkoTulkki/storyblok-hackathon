@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "run": "tsx ex.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -18,6 +19,7 @@
     "typescript": "5.8.2"
   },
   "dependencies": {
+    "tsx": "^4.20.3",
     "zod": "^3.25.67"
   }
 }

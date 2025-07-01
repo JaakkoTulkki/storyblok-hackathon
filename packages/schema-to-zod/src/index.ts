@@ -193,6 +193,10 @@ export function schemaToZod(contentTypes: ContentType[]): string {
     zodSchemas += `\n// ${contentType.name} content type\n`;
     zodSchemas += `export const ${schemaName} = z.object({\n`;
     
+    // Add required Storyblok fields
+    zodSchemas += `  _uid: z.string(),\n`;
+    zodSchemas += `  component: z.literal("${contentType.name}"),\n`;
+    
     // Convert Storyblok schema to Zod
     for (const [key, value] of Object.entries(contentType.schema)) {
       // Skip internal fields and UI elements
@@ -313,6 +317,17 @@ async function main() {
     
     // Write to file
     const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    // Create directory if it doesn't exist
+    const outputDir = path.dirname(outputPath);
+    try {
+      await fs.access(outputDir);
+    } catch {
+      console.log(`Creating directory: ${outputDir}`);
+      await fs.mkdir(outputDir, { recursive: true });
+    }
+    
     await fs.writeFile(outputPath, fullOutput, 'utf-8');
     console.log(`Zod schemas written to ${outputPath}`);
     
